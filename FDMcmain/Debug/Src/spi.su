@@ -1,0 +1,2 @@
+spi.c:50:6:MX_SPI1_Init	96	static
+spi.c:96:10:ReceiveData	0	static

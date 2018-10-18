@@ -1,0 +1,3 @@
+usart.c:45:8:StuffData	20	static
+usart.c:67:8:UnStuffData	16	static
+usart.c:89:6:MX_USART1_UART_Init	64	static
