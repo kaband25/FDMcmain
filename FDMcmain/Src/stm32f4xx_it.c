@@ -37,9 +37,14 @@
 
 /* USER CODE BEGIN 0 */
 uint16_t meArr[10000];
-uint8_t cobsArr1[20000];
-uint16_t cobsArr2[20000];
+uint8_t cobsArr[500];
+uint16_t cobsArr2[500];
+uint8_t order[10];
+uint16_t order_[6];
+uint8_t *pOrder = order;
 uint16_t ArrI=0;
+uint16_t numberOfMeasurements=100;
+uint16_t help=0;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -47,6 +52,70 @@ uint16_t ArrI=0;
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
 /******************************************************************************/
+
+void TIM3_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM3_IRQn 0 */
+	if(LL_TIM_IsActiveFlag_CC1(TIM3))
+	{
+		meArr[ArrI]=ReceiveData();
+		if(ArrI<numberOfMeasurements){ArrI++;}
+		else
+		{
+			LL_TIM_DisableCounter(TIM3);
+			LL_TIM_CC_DisableChannel(TIM3,1|4);
+			LL_TIM_DisableIT_CC1(TIM3);
+			LL_SPI_Disable(SPI1);
+
+			StuffData(&meArr,(2*numberOfMeasurements)+1,&cobsArr);
+
+			for(int i=0;i<=(2*numberOfMeasurements)+2;i++)
+			{
+				while(LL_USART_IsActiveFlag_TXE(USART1)==RESET);
+				LL_USART_TransmitData8(USART1,cobsArr[i]);
+				while(LL_USART_IsActiveFlag_TC(USART1)==RESET);
+			}
+			UnStuffData(&cobsArr,(2*numberOfMeasurements)+1,&cobsArr2);
+			ArrI=0;
+		}
+		LL_TIM_ClearFlag_CC1(TIM3);
+	}
+  /* USER CODE END TIM3_IRQn 0 */
+  /* USER CODE BEGIN TIM3_IRQn 1 */
+
+  /* USER CODE END TIM3_IRQn 1 */
+}
+
+/**
+* @brief This function handles USART1 global interrupt.
+*/
+void USART1_IRQHandler(void)
+{
+	if(LL_USART_IsActiveFlag_RXNE(USART1))
+		{
+		if(USART1->DR==0x00)
+			{
+		  LL_TIM_EnableCounter(TIM3);
+		  LL_TIM_CC_EnableChannel(TIM3,1|4);
+		  LL_TIM_EnableIT_CC1(TIM3);
+		  LL_SPI_Enable(SPI1);
+			}
+		LL_USART_ClearFlag_RXNE(USART1);
+		}
+/*    if(LL_USART_IsActiveFlag_RXNE(USART1))
+	{
+		if(USART1->DR == 0x00)
+		{
+			*pOrder++=USART1->DR;
+			UnStuffData(&order,6,&order_);
+		}
+		else
+		{
+			*pOrder++=USART1->DR;
+		}
+		LL_USART_ClearFlag_RXNE(USART1);
+	}*/
+}
 
 /**
 * @brief This function handles Non maskable interrupt.
@@ -196,36 +265,7 @@ void SysTick_Handler(void)
 /**
 * @brief This function handles TIM3 global interrupt.
 */
-void TIM3_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM3_IRQn 0 */
-	if(LL_TIM_IsActiveFlag_CC1(TIM3))
-	{
-		meArr[ArrI]=ReceiveData();
-		if(ArrI<10000)ArrI++;
-		LL_TIM_ClearFlag_CC1(TIM3);
-	}
-  /* USER CODE END TIM3_IRQn 0 */
-  /* USER CODE BEGIN TIM3_IRQn 1 */
 
-  /* USER CODE END TIM3_IRQn 1 */
-}
-
-/**
-* @brief This function handles USART1 global interrupt.
-*/
-void USART1_IRQHandler(void)
-{
-  /* USER CODE BEGIN USART1_IRQn 0 */
-	if(LL_USART_IsActiveFlag_RXNE(USART1))
-	{
-		LL_GPIO_TogglePin(GPIOA,INF1_Pin);
-		//StuffData(&meArr,20000,&cobsArr1);
-       // UnStuffData(&cobsArr1,20000,cobsArr2);
-		LL_USART_ClearFlag_RXNE(USART1);
-	}
-	/* USER CODE END 1 */
-}
 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
