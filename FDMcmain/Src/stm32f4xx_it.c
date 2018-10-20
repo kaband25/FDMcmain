@@ -39,12 +39,12 @@
 uint16_t meArr[10000];
 uint8_t cobsArr[500];
 uint16_t cobsArr2[500];
-uint8_t order[10];
-uint16_t order_[6];
+uint8_t order[6];
+uint8_t order_[4];
 uint8_t *pOrder = order;
 uint16_t ArrI=0;
-uint16_t numberOfMeasurements=100;
-uint16_t help=0;
+uint16_t numberOfMeasurements=0;
+uint16_t numberOfRepeats=0;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -91,30 +91,27 @@ void TIM3_IRQHandler(void)
 */
 void USART1_IRQHandler(void)
 {
-	if(LL_USART_IsActiveFlag_RXNE(USART1))
-		{
-		if(USART1->DR==0x00)
-			{
-		  LL_TIM_EnableCounter(TIM3);
-		  LL_TIM_CC_EnableChannel(TIM3,1|4);
-		  LL_TIM_EnableIT_CC1(TIM3);
-		  LL_SPI_Enable(SPI1);
-			}
-		LL_USART_ClearFlag_RXNE(USART1);
-		}
-/*    if(LL_USART_IsActiveFlag_RXNE(USART1))
+    if(LL_USART_IsActiveFlag_RXNE(USART1))
 	{
 		if(USART1->DR == 0x00)
 		{
 			*pOrder++=USART1->DR;
-			UnStuffData(&order,6,&order_);
+			UnStuffData(&order,4,&order_);
+
+			numberOfMeasurements=((uint16_t)order_[0]<<8)|order_[1];
+			numberOfRepeats=((uint16_t)order_[2]<<8)|order_[3];
+
+			LL_SPI_Enable(SPI1);
+			LL_TIM_CC_EnableChannel(TIM3,1|4);
+			LL_TIM_EnableIT_CC1(TIM3);
+			LL_TIM_EnableCounter(TIM3);
 		}
 		else
 		{
 			*pOrder++=USART1->DR;
 		}
 		LL_USART_ClearFlag_RXNE(USART1);
-	}*/
+	}
 }
 
 /**
