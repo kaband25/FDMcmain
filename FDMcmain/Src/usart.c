@@ -88,16 +88,16 @@ size_t UnStuffData(const uint8_t *ptr, size_t length, uint8_t *dst)
 
 void MX_USART1_UART_Init(void)
 {
-  LL_USART_InitTypeDef USART_InitStruct;
+	 LL_USART_InitTypeDef USART_InitStruct;
 
-  LL_GPIO_InitTypeDef GPIO_InitStruct;
-  /* Peripheral clock enable */
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
-  
-  /**USART1 GPIO Configuration  
-  PB6   ------> USART1_TX
-  PB7   ------> USART1_RX 
-  */
+	  LL_GPIO_InitTypeDef GPIO_InitStruct;
+	  /* Peripheral clock enable */
+	  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
+
+	  /**USART1 GPIO Configuration
+	  PB6   ------> USART1_TX
+	  PB7   ------> USART1_RX
+	  */
   GPIO_InitStruct.Pin = LL_GPIO_PIN_6|LL_GPIO_PIN_7;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
@@ -105,6 +105,22 @@ void MX_USART1_UART_Init(void)
   GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
   GPIO_InitStruct.Alternate = LL_GPIO_AF_7;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	  /* USART1_TX Init */
+  LL_DMA_InitTypeDef DMA_InitStruct;
+  DMA_InitStruct.Channel = LL_DMA_CHANNEL_4;
+  DMA_InitStruct.Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
+  DMA_InitStruct.MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT;
+  DMA_InitStruct.PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT;
+  DMA_InitStruct.MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_BYTE;
+  DMA_InitStruct.PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_BYTE;
+  DMA_InitStruct.Mode = LL_DMA_MODE_NORMAL;
+  DMA_InitStruct.Priority = LL_DMA_PRIORITY_LOW;
+  DMA_InitStruct.FIFOMode = LL_DMA_FIFOMODE_DISABLE;
+  DMA_InitStruct.FIFOThreshold = LL_DMA_FIFOTHRESHOLD_FULL;
+  DMA_InitStruct.MemBurst = LL_DMA_MBURST_SINGLE;
+  DMA_InitStruct.PeriphBurst = LL_DMA_PBURST_SINGLE;
+  LL_DMA_Init(DMA2,LL_DMA_STREAM_7,&DMA_InitStruct);
 
   /* USART1 interrupt Init */
   NVIC_SetPriority(USART1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
@@ -119,9 +135,11 @@ void MX_USART1_UART_Init(void)
   USART_InitStruct.OverSampling = LL_USART_OVERSAMPLING_16;
   LL_USART_Init(USART1, &USART_InitStruct);
 
+  LL_USART_EnableDMAReq_TX(USART1);
   LL_USART_ConfigAsyncMode(USART1);
 
   LL_USART_Enable(USART1);
+
 }
 
 /* USER CODE BEGIN 1 */

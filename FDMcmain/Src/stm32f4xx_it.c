@@ -34,15 +34,16 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_it.h"
 #include "main.h"
+#include "dma.h"
 
 /* USER CODE BEGIN 0 */
 uint16_t meArr[10000];
 uint8_t cobsArr[500];
-uint16_t cobsArr2[500];
-uint8_t order[6];
-uint8_t order_[4];
+uint8_t order[8];
+uint8_t order_[6];
 uint8_t *pOrder = order;
 uint16_t ArrI=0;
+uint16_t frequency=0;
 uint16_t numberOfMeasurements=0;
 uint16_t numberOfRepeats=0;
 /* USER CODE END 0 */
@@ -52,14 +53,24 @@ uint16_t numberOfRepeats=0;
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
 /******************************************************************************/
+void DMA2_IRQHandler(void)
+{
+if(LL_DMA_IsActiveFlag_TC7(DMA2))
+{
+	LL_DMA_ClearFlag_TC7(DMA2);
+}
 
+
+}
 void TIM3_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM3_IRQn 0 */
 	if(LL_TIM_IsActiveFlag_CC1(TIM3))
 	{
 		meArr[ArrI]=ReceiveData();
-		if(ArrI<numberOfMeasurements){ArrI++;}
+		if(ArrI<numberOfMeasurements)
+		{
+			ArrI++;
+		}
 		else
 		{
 			LL_TIM_DisableCounter(TIM3);
@@ -69,21 +80,17 @@ void TIM3_IRQHandler(void)
 
 			StuffData(&meArr,(2*numberOfMeasurements)+1,&cobsArr);
 
-			for(int i=0;i<=(2*numberOfMeasurements)+2;i++)
-			{
-				while(LL_USART_IsActiveFlag_TXE(USART1)==RESET);
-				LL_USART_TransmitData8(USART1,cobsArr[i]);
-				while(LL_USART_IsActiveFlag_TC(USART1)==RESET);
-			}
-			UnStuffData(&cobsArr,(2*numberOfMeasurements)+1,&cobsArr2);
+			DMA2->HIFCR = DMA_HIFCR_CDMEIF7 | DMA_HIFCR_CFEIF7| DMA_HIFCR_CHTIF7|DMA_HIFCR_CTCIF7|DMA_HIFCR_CTEIF7;
+			DMA2_Stream7->PAR = (uint32_t)&USART1->DR;
+			DMA2_Stream7->M0AR = (uint32_t)&cobsArr[0];
+			DMA2_Stream7->NDTR = (numberOfMeasurements*2)+3;
+			DMA2_Stream7->CR |= DMA_SxCR_EN;
+			USART1->CR3 |= USART_CR3_DMAT;
+
 			ArrI=0;
 		}
 		LL_TIM_ClearFlag_CC1(TIM3);
 	}
-  /* USER CODE END TIM3_IRQn 0 */
-  /* USER CODE BEGIN TIM3_IRQn 1 */
-
-  /* USER CODE END TIM3_IRQn 1 */
 }
 
 /**
@@ -96,10 +103,11 @@ void USART1_IRQHandler(void)
 		if(USART1->DR == 0x00)
 		{
 			*pOrder++=USART1->DR;
-			UnStuffData(&order,4,&order_);
+			UnStuffData(&order,6,&order_);
 
-			numberOfMeasurements=((uint16_t)order_[0]<<8)|order_[1];
-			numberOfRepeats=((uint16_t)order_[2]<<8)|order_[3];
+			frequency =((uint16_t)order_[0]<<8)|order_[1];
+			numberOfMeasurements=((uint16_t)order_[2]<<8)|order_[3];
+			numberOfRepeats=((uint16_t)order_[4]<<8)|order_[4];
 
 			LL_SPI_Enable(SPI1);
 			LL_TIM_CC_EnableChannel(TIM3,1|4);
