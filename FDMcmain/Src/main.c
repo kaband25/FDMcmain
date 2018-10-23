@@ -25,8 +25,6 @@ int main(void)
   USART1_UART_Init();
   TIM3_Init();
 
-  LL_USART_EnableIT_RXNE(USART1);
-
   while (1)
   {
   }
@@ -35,8 +33,6 @@ int main(void)
 
 static void LL_Init(void)
 {
-  
-
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
   LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
 
