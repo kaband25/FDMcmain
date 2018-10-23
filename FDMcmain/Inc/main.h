@@ -24,6 +24,7 @@
 #include "gpio.h"
 #include "usart.h"
 #include "dma.h"
+#include "func.h"
 #include "stm32f4xx_ll_gpio.h"
 
 #define INF1_Pin LL_GPIO_PIN_0
