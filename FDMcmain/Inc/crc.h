@@ -1,27 +1,24 @@
 /**
   ******************************************************************************
-  * File Name          : TIM.h
+  * File Name          : CRC.h
   * Description        : This file provides code for the configuration
-  *                      of the TIM instances.
+  *                      of the CRC instances.
   ******************************************************************************
   */
 
-#ifndef __tim_H
-#define __tim_H
+#ifndef __crc_H
+#define __crc_H
 #ifdef __cplusplus
  extern "C" {
 #endif
 
 
-#include "stm32f4xx_ll_tim.h"
+#include "stm32f4xx_ll_crc.h"
 #include "main.h"
-
 
 extern void _Error_Handler(char *, int);
 
-void TIM3_Init(void);
-void SetFrequency(uint16_t freq);
-
+void CRC_Init(void);
 
 #ifdef __cplusplus
 }
