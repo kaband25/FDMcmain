@@ -28,7 +28,6 @@ int main(void)
   while (1)
   {
   }
-
 }
 
 static void LL_Init(void)
