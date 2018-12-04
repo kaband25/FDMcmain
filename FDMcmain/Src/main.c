@@ -19,6 +19,7 @@ int main(void)
   LL_Init();
   SystemClock_Config();
 
+  CRC_Init();
   GPIO_Init();
   SPI1_Init();
   DMA_Init();
@@ -27,6 +28,7 @@ int main(void)
 
   while (1)
   {
+
   }
 }
 

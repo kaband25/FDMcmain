@@ -19,11 +19,12 @@ void ClearParams(void);
 void StartMeasurements(void);
 void StopMeasurements(void);
 void MakeMeasurements(void);
+void PackData(void);
 
-void EnableDMATransfer(void);
+void EnableDMATransfer(uint8_t * _array,uint32_t _which,uint32_t _howMany);
 
 void AddToCRC(uint16_t _M);
-void GetCRC(void);
+void GetCRC(uint16_t _itr);
 
 #ifdef __cplusplus
 }
