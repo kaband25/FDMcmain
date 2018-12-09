@@ -11,4 +11,5 @@
 void CRC_Init(void)
 {
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_CRC);
+  WRITE_REG(CRC->CR, CRC_CR_RESET);
 }

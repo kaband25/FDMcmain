@@ -11,12 +11,9 @@ uint16_t RESEND_MEAS = 502;
 
 uint16_t numberOfMeasurements=0;
 uint16_t meArr[10000];
-uint8_t cobsArr[20000];
-uint32_t meCRC[202];
-uint8_t cobsCRC[802];
+uint8_t cobsArr[21200];
 uint16_t ArrItr=0;
-
-uint16_t buff1=0;
+uint16_t meAAC[52];
 
 uint8_t Param[202];
 uint8_t Param_[200];
@@ -38,22 +35,17 @@ void GetParams(uint8_t _DR)
 
 					SetFrequency(frequency);
 
-					ClearParams();
+
 					StartMeasurements();
 	        	}
 	        	else if(whatToDo==RESEND_MEAS)
 	        	{
-	        		uint16_t numberOfPackets =((uint16_t)Param_[2]<<8)|Param_[3];
-	        		UnStuffData(&Param,(numberOfPackets*2)+5,&Param_);
-
-
-	        	    EnableDMATransfer(cobsArr,((uint16_t)Param_[4]<<8)|Param_[5],106);
-
-
-
-	        		ClearParams();
+	        		uint16_t which =((uint16_t)Param_[2]<<8)|Param_[3];
+	        	    EnableDMATransfer(cobsArr,which,106);
 	        	}
+	        	ClearParams();
 			}
+
 			else
 			{
 				*pParam++=_DR;
@@ -85,16 +77,22 @@ void PackData(void)
 {
 	for(int i=0;i<(numberOfMeasurements/50);i++)
 	{
-		if(i)StuffData(&meArr[i*50],104,&cobsArr[i*106]); // if i>0 cobsArr will be filled with 102 bytes so I have to add 2
-		else StuffData(&meArr,104,&cobsArr); // if i=0 then to cobsArr to start at 0
-
+		memset(meAAC,0,sizeof(meAAC));
+		uint32_t checkSum=0;
+		int buff=0;
 		for(int j=i*50;j<(i*50)+50;j++)
 		{
-			AddToCRC(meArr[j]);
+			checkSum+=meArr[j];
+			meAAC[buff]=meArr[j];
+			buff++;
 		}
-		GetCRC(i);
+		uint16_t partA=(uint16_t)((checkSum>>16)& 0x0000FFFF);
+		uint16_t partB=(uint16_t)(checkSum & 0x0000FFFF);
+		meAAC[50]=partB;
+		meAAC[51]=partA;
+
+		StuffData(&meAAC,104,&cobsArr[i*106]);
 	}
-	StuffData(&meCRC,(numberOfMeasurements/50)*4,&cobsCRC);
 }
 void StopMeasurements(void)
 {
@@ -108,7 +106,6 @@ void StartMeasurements(void)
 {
 	 memset(meArr,0,sizeof(meArr));
      memset(cobsArr,0,sizeof(cobsArr));
-
 	 LL_SPI_Enable(SPI1);
 	 LL_TIM_CC_EnableChannel(TIM3,1|4);
 	 LL_TIM_EnableIT_CC1(TIM3);
@@ -138,9 +135,9 @@ void AddToCRC(uint16_t _M)
 {
 	WRITE_REG(CRC->DR, _M);
 }
-void GetCRC(uint16_t _itr)
+uint32_t GetCRC(void)
 {
 	uint32_t var=READ_REG(CRC->DR);
-	cobsArr[(_itr*102)]=var>>24;
 	WRITE_REG(CRC->CR, CRC_CR_RESET);
+	return var;
 }

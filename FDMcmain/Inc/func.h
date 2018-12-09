@@ -24,7 +24,7 @@ void PackData(void);
 void EnableDMATransfer(uint8_t * _array,uint32_t _which,uint32_t _howMany);
 
 void AddToCRC(uint16_t _M);
-void GetCRC(uint16_t _itr);
+uint32_t GetCRC(void);
 
 #ifdef __cplusplus
 }

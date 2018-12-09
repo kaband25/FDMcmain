@@ -20,6 +20,7 @@ int main(void)
   SystemClock_Config();
 
   CRC_Init();
+
   GPIO_Init();
   SPI1_Init();
   DMA_Init();
